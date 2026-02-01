@@ -1,0 +1,30 @@
+name: Run Coze Workflow
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * *"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run workflow
+        env:
+          SCT_KEY: ${{ secrets.SCT_KEY }}
+          COZE_TOKEN: ${{ secrets.COZE_TOKEN }}
+          COZE_WORKFLOW_ID: ${{ secrets.COZE_WORKFLOW_ID }}
+          COZE_INPUT: ${{ secrets.COZE_INPUT }}
+          COZE_BASE_URL: ${{ secrets.COZE_BASE_URL }}
+        run: npm start

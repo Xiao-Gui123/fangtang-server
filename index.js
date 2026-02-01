@@ -1,18 +1,21 @@
+require('dotenv').config();
 const querystring = require('querystring');
 const { CozeAPI } = require('@coze/api');
 
-const key = 'SCT271801TpVbOAwz3d219pMOJ9czomXUQ';
-const token = 'cztei_qp5a6fmdp8KxY9SFWD3HppBIqIANvo6AzzoBjRnlpL8q4lXqLrEJe7b5TdqYwi5EY';
-const workflowId = '7601796979367084082';
+const key = requireEnv('SCT_KEY');
+const token = requireEnv('COZE_TOKEN');
+const workflowId = requireEnv('COZE_WORKFLOW_ID');
+const workflowInput = process.env.COZE_INPUT ?? 'AI科技\n';
+const baseURL = process.env.COZE_BASE_URL ?? 'https://api.coze.cn';
 
 (async () => {
   const apiClient = new CozeAPI({
     token,
-    baseURL: 'https://api.coze.cn'
+    baseURL
   });
 
   const workflowText = await runWorkflowText(apiClient, workflowId, {
-    input: 'AI科技\n'
+    input: workflowInput
   });
   const formattedText = normalizeText(workflowText);
   const ret = await sc_send(formattedText, '', key);
@@ -46,6 +49,14 @@ function normalizeText(text) {
     return '';
   }
   return String(text).replace(/\\n/g, '\n').trim();
+}
+
+function requireEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
 }
 
 async function runWorkflowText(apiClient, workflowId, parameters) {
