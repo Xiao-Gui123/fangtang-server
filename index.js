@@ -3,8 +3,7 @@ const querystring = require('querystring');
 const fs = require('fs');
 const path = require('path');
 
-const data = require('dotenv').parse(fs.readFileSync(path.join(__dirname, '../.env')));
-const key = data.SENDKEY;
+const key = 'SCT271801TpVbOAwz3d219pMOJ9czomXUQ';
 
 (async () => {
   const ret = await sc_send('主人服务器宕机了 via JS', "第一行\n\n第二行", key);
