@@ -1,12 +1,21 @@
-const https = require('https');
 const querystring = require('querystring');
-const fs = require('fs');
-const path = require('path');
+const { CozeAPI } = require('@coze/api');
 
 const key = 'SCT271801TpVbOAwz3d219pMOJ9czomXUQ';
+const token = 'cztei_qp5a6fmdp8KxY9SFWD3HppBIqIANvo6AzzoBjRnlpL8q4lXqLrEJe7b5TdqYwi5EY';
+const workflowId = '7601796979367084082';
 
 (async () => {
-  const ret = await sc_send('主人服务器宕机了 via JS', "第一行\n\n第二行", key);
+  const apiClient = new CozeAPI({
+    token,
+    baseURL: 'https://api.coze.cn'
+  });
+
+  const workflowText = await runWorkflowText(apiClient, workflowId, {
+    input: 'AI科技\n'
+  });
+  const formattedText = normalizeText(workflowText);
+  const ret = await sc_send(formattedText, '', key);
   console.log(ret);
 })();
 
@@ -30,4 +39,32 @@ async function sc_send(text, desp = '', key = '[SENDKEY]') {
 
   const data = await response.text();
   return data;
+}
+
+function normalizeText(text) {
+  if (!text) {
+    return '';
+  }
+  return String(text).replace(/\\n/g, '\n').trim();
+}
+
+async function runWorkflowText(apiClient, workflowId, parameters) {
+  const stream = await apiClient.workflows.runs.stream({
+    workflow_id: workflowId,
+    parameters
+  });
+
+  const chunks = [];
+  for await (const event of stream) {
+    const content =
+      event?.data?.content ??
+      event?.data?.message?.content ??
+      event?.data?.output ??
+      event?.content;
+    if (content) {
+      chunks.push(content);
+    }
+  }
+
+  return chunks.join('');
 }
